@@ -1,0 +1,1478 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RouteMaster</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+:root {
+        --rm-bg: #0f172a;
+        --rm-panel: #1e293b;
+        --rm-accent: #22c55e;
+        --rm-accent2: #14b8a6;
+      }
+
+      body {
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+        background-color: var(--rm-bg);
+        background-image: linear-gradient(rgba(148, 163, 184, 0.05) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(148, 163, 184, 0.05) 1px, transparent 1px);
+        background-size: 32px 32px;
+        background-position: -1px -1px;
+      }
+
+      .rm-glow {
+        box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.2), 0 0 24px rgba(34, 197, 94, 0.08);
+      }
+
+      .rm-inset-glow {
+        box-shadow: inset 0 0 0 1px rgba(34, 197, 94, 0.18), inset 0 0 24px rgba(34, 197, 94, 0.08);
+      }
+
+      .rm-shake {
+        animation: rm-shake 320ms ease-in-out;
+      }
+      @keyframes rm-shake {
+        0%, 100% { transform: translateX(0); }
+        20% { transform: translateX(-6px); }
+        40% { transform: translateX(6px); }
+        60% { transform: translateX(-4px); }
+        80% { transform: translateX(4px); }
+      }
+
+      .rm-fade-up {
+        animation: rm-fade-up 260ms ease-in-out both;
+      }
+      @keyframes rm-fade-up {
+        from { opacity: 0; transform: translateY(8px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      .rm-toast-in {
+        animation: rm-toast-in 260ms ease-in-out both;
+      }
+      @keyframes rm-toast-in {
+        from { opacity: 0; transform: translateY(8px) scale(0.98); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+      }
+
+      .rm-reveal {
+        opacity: 0;
+        transform: translateY(10px);
+        transition: opacity 280ms ease-in-out, transform 280ms ease-in-out;
+      }
+      .rm-reveal.rm-reveal-in {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .rm-hero-bg {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        overflow: hidden;
+      }
+      .rm-hero-bg::before {
+        content: "";
+        position: absolute;
+        inset: -40%;
+        background: radial-gradient(circle, rgba(34, 197, 94, 0.14) 0%, rgba(34, 197, 94, 0) 50%),
+          radial-gradient(circle, rgba(20, 184, 166, 0.12) 0%, rgba(20, 184, 166, 0) 55%),
+          radial-gradient(circle, rgba(56, 189, 248, 0.10) 0%, rgba(56, 189, 248, 0) 60%);
+        filter: blur(24px);
+        animation: rm-hero-float 12s ease-in-out infinite alternate;
+        opacity: 0.9;
+      }
+      .rm-hero-bg::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image: radial-gradient(rgba(148, 163, 184, 0.22) 1px, transparent 1px);
+        background-size: 28px 28px;
+        opacity: 0.18;
+        animation: rm-dots 10s ease-in-out infinite;
+      }
+      @keyframes rm-hero-float {
+        from { transform: translate3d(-2%, -1%, 0) rotate(-2deg); }
+        to { transform: translate3d(2%, 2%, 0) rotate(2deg); }
+      }
+      @keyframes rm-dots {
+        0%, 100% { opacity: 0.16; transform: translateY(0); }
+        50% { opacity: 0.24; transform: translateY(-10px); }
+      }
+
+      .json-key { color: #60a5fa; }
+      .json-string { color: #34d399; }
+      .json-number { color: #fdba74; }
+      .json-boolean, .json-null { color: #c4b5fd; }
+
+      .rm-path-pulse {
+        animation: rm-pulse 900ms ease-in-out infinite;
+      }
+      @keyframes rm-pulse {
+        0%, 100% { transform: scale(1); filter: drop-shadow(0 0 0 rgba(250, 204, 21, 0)); }
+        50% { transform: scale(1.04); filter: drop-shadow(0 0 10px rgba(250, 204, 21, 0.25)); }
+      }
+
+      /* Step-by-step log */
+      .rm-step-item {
+        opacity: 0;
+        transform: translateX(-8px);
+        transition: opacity 220ms ease-in-out, transform 220ms ease-in-out;
+      }
+      .rm-step-item.rm-step-in {
+        opacity: 1;
+        transform: translateX(0);
+      }
+      .rm-step-dot {
+        width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 4px;
+      }
+
+      /* Download button */
+      .rm-dl-btn {
+        display: inline-flex; align-items: center; gap: 6px;
+        border-radius: 10px;
+        border: 1px solid rgba(20,184,166,0.28);
+        background: rgba(20,184,166,0.06);
+        padding: 5px 10px;
+        font-size: 0.72rem; font-weight: 600; color: #99f6e4;
+        cursor: pointer;
+        transition: all 200ms ease-in-out;
+        text-decoration: none;
+      }
+      .rm-dl-btn:hover {
+        border-color: rgba(20,184,166,0.5);
+        background: rgba(20,184,166,0.12);
+        box-shadow: 0 0 18px rgba(20,184,166,0.14);
+      }
+
+      /* Upload button style */
+      .rm-upload-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border-radius: 12px;
+        border: 1px solid rgba(56, 189, 248, 0.25);
+        background: rgba(56, 189, 248, 0.05);
+        padding: 8px 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #bae6fd;
+        cursor: pointer;
+        transition: all 200ms ease-in-out;
+      }
+      .rm-upload-label:hover {
+        border-color: rgba(56, 189, 248, 0.4);
+        background: rgba(56, 189, 248, 0.10);
+        box-shadow: 0 0 20px rgba(56, 189, 248, 0.12);
+      }
+      #jsonFileInput { display: none; }
+
+      /* Upload success flash */
+      .rm-upload-flash {
+        animation: rm-upload-flash 600ms ease-in-out;
+      }
+      @keyframes rm-upload-flash {
+        0% { border-color: rgba(56, 189, 248, 0.25); }
+        40% { border-color: rgba(56, 189, 248, 0.8); box-shadow: 0 0 28px rgba(56,189,248,0.22); }
+        100% { border-color: rgba(56, 189, 248, 0.25); }
+      }
+    </style>
+
+    <!-- Tailwind CSS (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+
+  <body class="min-h-screen text-slate-100">
+    <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+
+      <!-- HERO -->
+      <section class="relative mb-8 overflow-hidden rounded-3xl border border-emerald-300/15 bg-[#0b1220] px-6 py-10 rm-inset-glow">
+        <div class="rm-hero-bg"></div>
+        <div class="relative mx-auto max-w-3xl text-center">
+          <div class="mx-auto mb-5 flex w-full justify-center">
+            <div class="rm-glow inline-flex items-center justify-center rounded-3xl border border-emerald-300/15 bg-[#0f172a]/70 p-5">
+              <svg width="120" height="56" viewBox="0 0 120 56" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <circle cx="16" cy="40" r="7" fill="#22c55e" fill-opacity="0.95"/>
+                <path d="M24 40 C 44 40, 46 16, 66 16 S 88 40, 104 40" stroke="#14b8a6" stroke-width="3" stroke-linecap="round" stroke-dasharray="6 6" opacity="0.95"/>
+                <path d="M104 15 v26" stroke="#ef4444" stroke-width="3" stroke-linecap="round" opacity="0.9"/>
+                <path d="M104 16 L116 20 L104 26 Z" fill="#ef4444" opacity="0.95"/>
+              </svg>
+            </div>
+          </div>
+
+          <h2 class="text-4xl font-bold tracking-tight text-slate-50 sm:text-5xl">
+            <span class="bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">RouteMaster</span>
+          </h2>
+          <p class="mt-3 text-base text-slate-300 sm:text-lg">
+            Find the shortest path through any grid using Breadth-First Search
+          </p>
+
+          <div class="mt-6 flex flex-wrap justify-center gap-2">
+            <span class="inline-flex items-center rounded-full border border-emerald-300/20 bg-emerald-400/5 px-3 py-1 text-xs font-semibold text-emerald-100">⚡ BFS Algorithm</span>
+            <span class="inline-flex items-center rounded-full border border-emerald-300/20 bg-emerald-400/5 px-3 py-1 text-xs font-semibold text-emerald-100">🗺️ Grid Pathfinding</span>
+            <span class="inline-flex items-center rounded-full border border-emerald-300/20 bg-emerald-400/5 px-3 py-1 text-xs font-semibold text-emerald-100">📊 Real-time Visualization</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- HOW IT WORKS -->
+      <section class="mb-8 rm-reveal" data-reveal>
+        <div class="mb-4 flex items-end justify-between gap-3">
+          <h3 class="text-lg font-semibold tracking-tight text-slate-50">How It Works</h3>
+          <div class="text-xs text-slate-400">4 quick steps</div>
+        </div>
+
+        <div class="grid grid-cols-1 gap-3 lg:grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr]">
+          <div class="group rounded-2xl border border-slate-700/60 bg-[#1e293b] p-4 shadow-sm transition-all duration-200 ease-in-out hover:-translate-y-0.5 hover:shadow-[0_0_26px_rgba(34,197,94,0.10)]">
+            <div class="mb-2 text-2xl">📋</div>
+            <div class="border-t border-emerald-300/20 pt-2 text-sm font-semibold text-slate-50">Paste Your Grid</div>
+            <p class="mt-1 text-sm text-slate-300">Input a JSON grid with obstacles, a start point, and a target destination.</p>
+          </div>
+          <div class="hidden items-center justify-center text-xl text-slate-500 lg:flex">→</div>
+          <div class="group rounded-2xl border border-slate-700/60 bg-[#1e293b] p-4 shadow-sm transition-all duration-200 ease-in-out hover:-translate-y-0.5 hover:shadow-[0_0_26px_rgba(34,197,94,0.10)]">
+            <div class="mb-2 text-2xl">⚙️</div>
+            <div class="border-t border-emerald-300/20 pt-2 text-sm font-semibold text-slate-50">BFS Explores</div>
+            <p class="mt-1 text-sm text-slate-300">The algorithm fans out layer by layer from the start, guaranteeing the shortest possible route.</p>
+          </div>
+          <div class="hidden items-center justify-center text-xl text-slate-500 lg:flex">→</div>
+          <div class="group rounded-2xl border border-slate-700/60 bg-[#1e293b] p-4 shadow-sm transition-all duration-200 ease-in-out hover:-translate-y-0.5 hover:shadow-[0_0_26px_rgba(34,197,94,0.10)]">
+            <div class="mb-2 text-2xl">🗺️</div>
+            <div class="border-t border-emerald-300/20 pt-2 text-sm font-semibold text-slate-50">Path Reconstructed</div>
+            <p class="mt-1 text-sm text-slate-300">Parent pointers trace back from target to start, building the exact route taken.</p>
+          </div>
+          <div class="hidden items-center justify-center text-xl text-slate-500 lg:flex">→</div>
+          <div class="group rounded-2xl border border-slate-700/60 bg-[#1e293b] p-4 shadow-sm transition-all duration-200 ease-in-out hover:-translate-y-0.5 hover:shadow-[0_0_26px_rgba(34,197,94,0.10)]">
+            <div class="mb-2 text-2xl">✅</div>
+            <div class="border-t border-emerald-300/20 pt-2 text-sm font-semibold text-slate-50">Results Displayed</div>
+            <p class="mt-1 text-sm text-slate-300">See the path highlighted on the grid with step counts and execution time.</p>
+          </div>
+        </div>
+      </section>
+
+      <header class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <div class="inline-flex items-center gap-3">
+            <div class="h-10 w-10 rounded-xl bg-emerald-500/10 ring-1 ring-emerald-400/25 rm-glow"></div>
+            <div>
+              <h1 class="text-2xl font-semibold tracking-tight text-slate-50">RouteMaster</h1>
+              <p class="mt-0.5 text-sm text-slate-300">BFS Pathfinding Visualizer</p>
+            </div>
+          </div>
+        </div>
+        <div class="text-xs text-slate-400">
+          Neon accent: <span class="font-semibold text-emerald-300">ON</span>
+        </div>
+      </header>
+
+      <!-- Two panels -->
+      <main class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+
+        <!-- Left: JSON Input -->
+        <section class="rounded-2xl border border-slate-700/60 bg-[#1e293b] p-4 shadow-sm rm-inset-glow">
+          <div class="mb-3 flex items-center justify-between gap-3">
+            <h2 class="text-sm font-semibold text-slate-200">JSON Input</h2>
+            <div class="flex flex-wrap gap-2">
+
+              <!-- Upload JSON / CSV File button -->
+              <label for="jsonFileInput" class="rm-upload-label" title="Upload a .json or .csv file">
+                <span aria-hidden="true">📂</span>
+                <span>Upload JSON / CSV</span>
+              </label>
+              <input type="file" id="jsonFileInput" accept=".json,application/json,.csv,text/csv" />
+
+              <button
+                type="button"
+                id="loadExampleBtn"
+                class="inline-flex items-center gap-2 rounded-xl border border-emerald-300/20 bg-white/0 px-3 py-2 text-xs font-semibold text-emerald-100 transition-all duration-200 ease-in-out hover:border-emerald-300/35 hover:bg-emerald-400/5 hover:shadow-[0_0_24px_rgba(34,197,94,0.10)]"
+              >
+                <span aria-hidden="true">⚡</span>
+                <span>Load Example</span>
+              </button>
+
+              <button
+                type="button"
+                id="clearBtn"
+                class="inline-flex items-center rounded-xl border border-rose-400/30 bg-white/0 px-3 py-2 text-xs font-semibold text-rose-200 transition-all duration-200 ease-in-out hover:border-rose-400/45 hover:bg-rose-500/10"
+              >
+                Clear
+              </button>
+
+              <button
+                type="button"
+                id="calculateRouteBtn"
+                class="group inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 px-4 py-2.5 text-sm font-semibold text-slate-900 shadow-sm transition-all duration-200 ease-in-out hover:scale-[1.02] hover:shadow-[0_0_28px_rgba(34,197,94,0.20)] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-70"
+              >
+                <span id="calcIcon" aria-hidden="true" class="text-base leading-none">▶</span>
+                <span id="calcLabel">Calculate Route</span>
+                <span id="calcSpinner" aria-hidden="true" class="hidden h-4 w-4 animate-spin rounded-full border-2 border-slate-900/40 border-t-slate-900"></span>
+              </button>
+            </div>
+          </div>
+
+          <label for="jsonInput" class="sr-only">JSON input</label>
+          <textarea
+            id="jsonInput"
+            class="h-[28rem] w-full resize-y rounded-xl border border-slate-600/50 bg-[#0b1220] px-3 py-3 font-mono text-sm text-slate-100 placeholder:text-slate-500 shadow-sm transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-sky-400/70 focus:shadow-[0_0_24px_rgba(56,189,248,0.12)]"
+            placeholder='Paste JSON here, or upload a .json / .csv file...'
+            spellcheck="false"
+          ></textarea>
+
+          <div class="mt-2 flex items-center justify-between text-xs text-slate-400">
+            <div id="inputCounter">Chars: 0 | Lines: 1</div>
+            <div id="uploadStatus" class="text-sky-300 font-semibold"></div>
+          </div>
+
+          <!-- Error message -->
+          <div
+            id="errorMessage"
+            role="alert"
+            aria-live="polite"
+            class="mt-3 hidden rounded-lg border border-rose-900/60 bg-rose-950/30 px-3 py-2 text-sm text-rose-200"
+          ></div>
+        </section>
+
+        <!-- Right: Output -->
+        <section class="rounded-2xl border border-slate-700/60 bg-[#1e293b] p-4 shadow-sm rm-inset-glow">
+          <div class="mb-3 flex items-center justify-between gap-3">
+            <h2 class="text-sm font-semibold text-slate-200">Output</h2>
+            <span class="text-xs text-slate-400">Read-only</span>
+          </div>
+
+          <!-- Summary stats -->
+          <div id="summaryStats" class="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <div id="cardSteps" class="rounded-2xl border border-slate-700/60 bg-[#0b1220] p-3 shadow-sm transition-all duration-200 ease-in-out">
+              <div class="flex items-center justify-between">
+                <div class="text-xs font-semibold text-slate-300">Steps</div>
+                <div class="text-sm" aria-hidden="true">👣</div>
+              </div>
+              <div id="stepsValue" class="mt-1 text-2xl font-semibold tracking-tight text-slate-50">—</div>
+            </div>
+            <div id="cardReached" class="rounded-2xl border border-slate-700/60 bg-[#0b1220] p-3 shadow-sm transition-all duration-200 ease-in-out">
+              <div class="flex items-center justify-between">
+                <div class="text-xs font-semibold text-slate-300">Target</div>
+                <div id="reachedIcon" class="text-sm" aria-hidden="true">—</div>
+              </div>
+              <div id="reachedValue" class="mt-1 text-2xl font-semibold tracking-tight text-slate-50">—</div>
+            </div>
+            <div id="cardTime" class="rounded-2xl border border-slate-700/60 bg-[#0b1220] p-3 shadow-sm transition-all duration-200 ease-in-out">
+              <div class="flex items-center justify-between">
+                <div class="text-xs font-semibold text-slate-300">Time</div>
+                <div class="text-sm" aria-hidden="true">⚡</div>
+              </div>
+              <div id="timeValue" class="mt-1 text-2xl font-semibold tracking-tight text-slate-50">—</div>
+            </div>
+          </div>
+
+          <!-- Formatted JSON output -->
+          <div class="rounded-2xl border border-slate-700/60 bg-[#0b1220] shadow-sm">
+            <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-700/60 px-3 py-2">
+              <div class="text-xs font-semibold text-slate-300">Formatted JSON</div>
+              <div class="flex items-center gap-2">
+                <div class="text-xs text-slate-500">output.json</div>
+                <button id="copyOutputBtn" type="button"
+                  class="inline-flex items-center rounded-lg border border-emerald-300/20 bg-white/0 px-2.5 py-1 text-xs font-semibold text-emerald-100 transition-all duration-200 ease-in-out hover:border-emerald-300/35 hover:bg-emerald-400/5"
+                >Copy</button>
+                <span id="copyStatus" class="hidden text-xs font-semibold text-emerald-300">Copied!</span>
+                <button id="downloadJsonBtn" type="button" class="rm-dl-btn">⬇ Download JSON</button>
+              </div>
+            </div>
+            <pre class="max-h-[28rem] overflow-auto p-3 text-sm leading-6"><code id="jsonOutput" class="block whitespace-pre font-mono text-slate-100">
+{
+  "result": null
+}
+            </code></pre>
+          </div>
+        </section>
+
+        <!-- Full-width: Step-by-step BFS log -->
+        <section class="lg:col-span-2" id="stepLogSection" style="display:none;">
+          <div class="rounded-2xl border border-slate-700/60 bg-[#1e293b] p-4 shadow-sm rm-inset-glow">
+            <div class="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 class="text-sm font-semibold text-slate-200">🧭 Step-by-Step BFS Procedure</h2>
+                <p class="mt-0.5 text-xs text-slate-400">Every move BFS makes, in order — from start to target.</p>
+              </div>
+              <button id="downloadStepsBtn" type="button" class="rm-dl-btn self-start sm:self-auto">⬇ Download Steps</button>
+            </div>
+            <div id="stepLogList" class="max-h-80 overflow-y-auto space-y-1 pr-1"></div>
+          </div>
+        </section>
+
+        <!-- Full-width visualization area -->
+        <section class="lg:col-span-2">
+          <div class="rounded-2xl border border-slate-700/60 bg-[#1e293b] p-4 shadow-sm rm-inset-glow">
+            <div class="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 class="text-sm font-semibold text-slate-200">Grid Visualizer</h2>
+                <p class="mt-0.5 text-xs text-slate-400">Zoom and watch the path light up.</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <div class="text-xs text-slate-400">Zoom</div>
+                <button id="zoomOutBtn" type="button" class="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-600/60 bg-[#0b1220] text-sm font-semibold text-slate-100 transition-all duration-200 ease-in-out hover:border-emerald-300/30 hover:shadow-[0_0_18px_rgba(34,197,94,0.10)]" aria-label="Zoom out">−</button>
+                <div id="zoomLabel" class="min-w-[3.5rem] rounded-xl border border-slate-600/60 bg-[#0b1220] px-3 py-2 text-center text-xs font-semibold text-slate-200">40px</div>
+                <button id="zoomInBtn" type="button" class="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-600/60 bg-[#0b1220] text-sm font-semibold text-slate-100 transition-all duration-200 ease-in-out hover:border-emerald-300/30 hover:shadow-[0_0_18px_rgba(34,197,94,0.10)]" aria-label="Zoom in">+</button>
+              </div>
+            </div>
+
+            <div id="gridArea" class="h-[24rem] w-full overflow-auto rounded-2xl border border-emerald-300/15 bg-[#0b1220] p-3 rm-inset-glow"></div>
+
+            <div class="mt-3 flex flex-wrap gap-2 text-xs font-semibold text-slate-200">
+              <div class="inline-flex items-center gap-2 rounded-full border border-slate-700/60 bg-[#0b1220] px-3 py-1.5">
+                <span class="h-2.5 w-2.5 rounded-full bg-green-500 shadow-sm ring-1 ring-white/10"></span><span>Start</span>
+              </div>
+              <div class="inline-flex items-center gap-2 rounded-full border border-slate-700/60 bg-[#0b1220] px-3 py-1.5">
+                <span class="h-2.5 w-2.5 rounded-full bg-red-500 shadow-sm ring-1 ring-white/10"></span><span>Target</span>
+              </div>
+              <div class="inline-flex items-center gap-2 rounded-full border border-slate-700/60 bg-[#0b1220] px-3 py-1.5">
+                <span class="h-2.5 w-2.5 rounded-full bg-yellow-400 shadow-sm ring-1 ring-white/10"></span><span>Path</span>
+              </div>
+              <div class="inline-flex items-center gap-2 rounded-full border border-slate-700/60 bg-[#0b1220] px-3 py-1.5">
+                <span class="h-2.5 w-2.5 rounded-full shadow-sm ring-1 ring-white/10" style="background: #374151"></span><span>Obstacle</span>
+              </div>
+              <div class="inline-flex items-center gap-2 rounded-full border border-slate-700/60 bg-[#0b1220] px-3 py-1.5">
+                <span class="h-2.5 w-2.5 rounded-full bg-white shadow-sm ring-1 ring-black/10"></span><span>Open</span>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="mt-12 border-t border-emerald-300/20 bg-[#0b1220]">
+      <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 gap-4 text-sm text-slate-300 md:grid-cols-3 md:items-center">
+          <div class="flex items-center gap-3">
+            <div class="h-9 w-9 rounded-xl bg-emerald-500/10 ring-1 ring-emerald-400/25 rm-glow"></div>
+            <div>
+              <div class="font-semibold text-slate-50">RouteMaster</div>
+              <div class="text-xs text-slate-400">BFS Pathfinding Visualizer</div>
+            </div>
+          </div>
+          <div class="text-center text-xs text-slate-400 md:text-sm">Built for competitive hackathon demonstration</div>
+          <div class="flex justify-start gap-4 text-xs font-semibold text-emerald-100 md:justify-end">
+            <a href="#" class="rounded-full border border-emerald-300/20 bg-emerald-400/5 px-3 py-1.5 hover:bg-emerald-400/10">💻 GitHub</a>
+            <a href="#" class="rounded-full border border-emerald-300/20 bg-emerald-400/5 px-3 py-1.5 hover:bg-emerald-400/10">🚀 Live Demo</a>
+            <a href="#" class="rounded-full border border-emerald-300/20 bg-emerald-400/5 px-3 py-1.5 hover:bg-emerald-400/10">📄 Docs</a>
+          </div>
+        </div>
+        <div class="mt-4 text-center text-xs text-slate-500">© 2025 RouteMaster. Powered by Breadth-First Search.</div>
+      </div>
+    </footer>
+
+    <!-- Back to Top -->
+    <button
+      id="backToTopBtn"
+      type="button"
+      class="fixed bottom-4 left-4 hidden items-center gap-2 rounded-full border border-emerald-300/20 bg-[#0b1220] px-4 py-2 text-xs font-semibold text-emerald-100 shadow-[0_0_26px_rgba(34,197,94,0.10)] transition-all duration-200 ease-in-out hover:shadow-[0_0_34px_rgba(34,197,94,0.16)]"
+      aria-label="Back to top"
+    >↑ Back to Top</button>
+
+    <div
+      id="toast"
+      class="pointer-events-none fixed bottom-4 right-4 hidden max-w-sm rounded-2xl border border-emerald-300/20 bg-[#0b1220] px-4 py-3 text-sm text-slate-100 shadow-[0_0_40px_rgba(34,197,94,0.12)]"
+      role="status"
+      aria-live="polite"
+    ></div>
+
+    <script>
+/*
+        BFS guarantees the shortest path by exploring nodes layer by layer: all positions
+        at distance 1 before distance 2, etc. The first time the target is reached,
+        the path taken is guaranteed to be the shortest.
+      */
+      function bfs(grid, start, target) {
+        const startTime = Date.now();
+        const rows = Array.isArray(grid) ? grid.length : 0;
+        const cols = rows > 0 && Array.isArray(grid[0]) ? grid[0].length : 0;
+
+        if (rows === 0 || cols === 0 || !Array.isArray(start) || !Array.isArray(target) || start.length !== 2 || target.length !== 2) {
+          return { total_steps: 0, path: [], target_reached: false, execution_time_ms: Date.now() - startTime };
+        }
+
+        const [sr, sc] = start;
+        const [tr, tc] = target;
+
+        if (sr < 0 || sr >= rows || sc < 0 || sc >= cols || tr < 0 || tr >= rows || tc < 0 || tc >= cols || grid[sr][sc] === 1 || grid[tr][tc] === 1) {
+          return { total_steps: 0, path: [], target_reached: false, execution_time_ms: Date.now() - startTime };
+        }
+
+        const queue = [{ position: [sr, sc], parent: null }];
+        const visited = Array.from({ length: rows }, () => Array(cols).fill(false));
+        visited[sr][sc] = true;
+        const deltas = [[-1,0],[1,0],[0,-1],[0,1]];
+
+        let head = 0;
+        while (head < queue.length) {
+          const current = queue[head++];
+          const [r, c] = current.position;
+
+          if (r === tr && c === tc) {
+            const path = [];
+            let node = current;
+            while (node) { path.push(node.position); node = node.parent; }
+            path.reverse();
+            return { total_steps: path.length - 1, path, target_reached: true, execution_time_ms: Date.now() - startTime };
+          }
+
+          for (const [dr, dc] of deltas) {
+            const nr = r + dr, nc = c + dc;
+            if (nr < 0 || nr >= rows || nc < 0 || nc >= cols) continue;
+            if (grid[nr][nc] === 1) continue;
+            if (visited[nr][nc]) continue;
+            visited[nr][nc] = true;
+            queue.push({ position: [nr, nc], parent: current });
+          }
+        }
+
+        return { total_steps: 0, path: [], target_reached: false, execution_time_ms: Date.now() - startTime };
+      }
+
+      let gridCellSize = 40;
+      let lastRenderState = null;
+      let lastOutputRaw = "";
+
+      function escapeHtml(str) {
+        return String(str).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;");
+      }
+
+      function highlightJsonString(raw) {
+        const s = String(raw);
+        let i = 0, out = "";
+        const isWhitespace = ch => ch===" "||ch==="\n"||ch==="\r"||ch==="\t";
+        const isDigit = ch => ch>="0"&&ch<="9";
+
+        while (i < s.length) {
+          const ch = s[i];
+          if (ch === '"') {
+            let j = i+1, escaped = false;
+            while (j < s.length) {
+              const cj = s[j];
+              if (escaped) { escaped=false; j++; continue; }
+              if (cj==="\\") { escaped=true; j++; continue; }
+              if (cj==='"') break;
+              j++;
+            }
+            const token = s.slice(i, Math.min(j+1, s.length));
+            let k = j+1;
+            while (k < s.length && isWhitespace(s[k])) k++;
+            const isKey = k < s.length && s[k]===":";
+            out += `<span class="${isKey?"json-key":"json-string"}">${escapeHtml(token)}</span>`;
+            i = j+1; continue;
+          }
+          if (ch==="-"||isDigit(ch)) {
+            const m = s.slice(i).match(/^-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?/);
+            if (m) { out+=`<span class="json-number">${escapeHtml(m[0])}</span>`; i+=m[0].length; continue; }
+          }
+          if (s.startsWith("true",i)||s.startsWith("false",i)) {
+            const lit = s.startsWith("true",i)?"true":"false";
+            out+=`<span class="json-boolean">${lit}</span>`; i+=lit.length; continue;
+          }
+          if (s.startsWith("null",i)) { out+=`<span class="json-null">null</span>`; i+=4; continue; }
+          out += escapeHtml(ch); i++;
+        }
+        return out;
+      }
+
+      function renderGrid(grid, start, target, path) {
+        const gridArea = document.getElementById("gridArea");
+        if (!gridArea) return;
+        if (!Array.isArray(grid)||grid.length===0||!Array.isArray(grid[0])) { gridArea.innerHTML=""; return; }
+
+        const rows = grid.length, cols = grid[0].length;
+        const key = (r,c) => `${r},${c}`;
+        const startKey = Array.isArray(start) ? key(start[0],start[1]) : null;
+        const targetKey = Array.isArray(target) ? key(target[0],target[1]) : null;
+
+        const pathIndexByCell = new Map();
+        const orderedPathKeys = [];
+        if (Array.isArray(path)) {
+          for (let i=0; i<path.length; i++) {
+            const p = path[i];
+            if (Array.isArray(p)&&p.length===2) {
+              const k = key(p[0],p[1]);
+              pathIndexByCell.set(k,i);
+              orderedPathKeys.push(k);
+            }
+          }
+        }
+
+        lastRenderState = { grid, start, target, path };
+        gridArea.innerHTML = "";
+        gridArea.style.overflowX = "auto";
+        gridArea.style.overflowY = "auto";
+
+        const gridEl = document.createElement("div");
+        gridEl.style.display = "grid";
+        gridEl.style.gridTemplateColumns = `repeat(${cols}, ${gridCellSize}px)`;
+        gridEl.style.gap = "6px";
+        gridEl.style.alignContent = "start";
+        gridEl.style.justifyContent = "start";
+        gridEl.style.width = "fit-content";
+        gridArea.appendChild(gridEl);
+
+        const cellByKey = new Map();
+
+        for (let r=0; r<rows; r++) {
+          for (let c=0; c<cols; c++) {
+            const cell = document.createElement("div");
+            cell.style.width = `${gridCellSize}px`;
+            cell.style.height = `${gridCellSize}px`;
+            cell.style.border = "1px solid rgba(148,163,184,0.18)";
+            cell.style.borderRadius = "12px";
+            cell.style.boxShadow = "0 1px 2px rgba(0,0,0,0.30)";
+            cell.style.display = "flex";
+            cell.style.alignItems = "center";
+            cell.style.justifyContent = "center";
+            cell.style.fontFamily = "ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace";
+            cell.style.fontSize = `${Math.max(10, Math.round(gridCellSize*0.3))}px`;
+            cell.style.userSelect = "none";
+            cell.style.transition = "background-color 260ms ease-in-out, opacity 260ms ease-in-out, transform 260ms ease-in-out";
+
+            const cellKey = key(r,c);
+            const isStart = startKey!==null && cellKey===startKey;
+            const isTarget = targetKey!==null && cellKey===targetKey;
+            const isObstacle = grid[r][c]===1;
+            const inPath = pathIndexByCell.has(cellKey);
+
+            if (isStart) {
+              cell.style.background="#22c55e"; cell.style.color="#052e16"; cell.textContent="S";
+            } else if (isTarget) {
+              cell.style.background="#ef4444"; cell.style.color="#450a0a"; cell.textContent="🎯";
+            } else if (isObstacle) {
+              cell.style.background="repeating-linear-gradient(45deg,#374151,#374151 6px,#2b3443 6px,#2b3443 12px)";
+              cell.style.color="#e5e7eb"; cell.textContent="";
+            } else if (inPath) {
+              cell.style.background="#ffffff"; cell.style.color="#111827"; cell.style.opacity="0.25"; cell.textContent="";
+            } else {
+              cell.style.background="#ffffff"; cell.style.color="#111827"; cell.textContent="";
+            }
+
+            cellByKey.set(cellKey, cell);
+            gridEl.appendChild(cell);
+          }
+        }
+
+        if (orderedPathKeys.length > 0) {
+          let animStep = 0;
+          for (const k of orderedPathKeys) {
+            if (k===startKey||k===targetKey) continue;
+            const cell = cellByKey.get(k);
+            const idx = pathIndexByCell.get(k);
+            if (!cell||typeof idx!=="number") continue;
+            setTimeout(() => {
+              cell.style.background="#facc15"; cell.style.color="#111827";
+              cell.style.opacity="1"; cell.textContent=String(idx);
+              cell.classList.add("rm-path-pulse");
+            }, animStep*80);
+            animStep++;
+          }
+        }
+      }
+
+      function setLoading(isLoading) {
+        const btn = document.getElementById("calculateRouteBtn");
+        const label = document.getElementById("calcLabel");
+        const icon = document.getElementById("calcIcon");
+        const spinner = document.getElementById("calcSpinner");
+        if (!btn||!label||!spinner) return;
+        btn.disabled = Boolean(isLoading);
+        if (isLoading) {
+          spinner.classList.remove("hidden");
+          if (icon) icon.classList.add("hidden");
+          label.textContent = "Calculating...";
+        } else {
+          spinner.classList.add("hidden");
+          if (icon) icon.classList.remove("hidden");
+          label.textContent = "Calculate Route";
+        }
+      }
+
+      function showToast(message, variant="success") {
+        const toast = document.getElementById("toast");
+        if (!toast) return;
+        toast.textContent = message;
+        toast.classList.remove("hidden","rm-toast-in");
+        toast.style.borderColor = variant==="error"?"rgba(248,113,113,0.35)":variant==="warning"?"rgba(251,191,36,0.35)":"rgba(110,231,183,0.25)";
+        void toast.offsetWidth;
+        toast.classList.add("rm-toast-in");
+        clearTimeout(showToast._t);
+        showToast._t = setTimeout(()=>toast.classList.add("hidden"), 2400);
+      }
+
+      function showError(message) {
+        const el = document.getElementById("errorMessage");
+        if (!el) return;
+        el.textContent = message;
+        el.classList.remove("hidden");
+      }
+
+      function clearError() {
+        const el = document.getElementById("errorMessage");
+        if (!el) return;
+        el.textContent = "";
+        el.classList.add("hidden");
+      }
+
+      function ensurePosition(pos, rows, cols, label) {
+        if (!Array.isArray(pos)||pos.length!==2) throw new Error(`${label} must be an array like [row, col].`);
+        const [r,c] = pos;
+        if (!Number.isInteger(r)||!Number.isInteger(c)) throw new Error(`${label} coordinates must be integers.`);
+        if (r<0||r>=rows||c<0||c>=cols) throw new Error(`${label} is out of grid bounds.`);
+      }
+
+      function ensureGrid(grid) {
+        if (!Array.isArray(grid)||grid.length===0) throw new Error("grid must be a non-empty 2D array.");
+        if (!Array.isArray(grid[0])||grid[0].length===0) throw new Error("grid must be a non-empty 2D array.");
+        const cols = grid[0].length;
+        for (let r=0; r<grid.length; r++) {
+          if (!Array.isArray(grid[r])||grid[r].length!==cols) throw new Error("grid must be a rectangular 2D array.");
+        }
+        return { rows: grid.length, cols };
+      }
+
+      // Custom JSON formatter: path coords and grid rows rendered horizontally
+      function formatRouteMasterJson(result) {
+        const coordToStr = (c) => `[${c[0]}, ${c[1]}]`;
+
+        // Format path: each [r,c] on same line, whole array on one line if short else wrapped
+        let pathStr;
+        if (!Array.isArray(result.path) || result.path.length === 0) {
+          pathStr = "[]";
+        } else {
+          const coords = result.path.map(coordToStr).join(", ");
+          // If it fits in ~100 chars keep on one line, else one coord per line
+          if (coords.length <= 100) {
+            pathStr = `[${coords}]`;
+          } else {
+            const inner = result.path.map(c => "    " + coordToStr(c)).join(",\n");
+            pathStr = `[\n${inner}\n  ]`;
+          }
+        }
+
+        return (
+          `{\n` +
+          `  "total_steps": ${result.total_steps},\n` +
+          `  "path": ${pathStr},\n` +
+          `  "target_reached": ${result.target_reached},\n` +
+          `  "execution_time_ms": ${result.execution_time_ms}\n` +
+          `}`
+        );
+      }
+
+      // Stores plain-text steps for download
+      let lastStepsRaw = "";
+
+      function setOutput(result) {
+        const stepsValue  = document.getElementById("stepsValue");
+        const reachedValue = document.getElementById("reachedValue");
+        const reachedIcon = document.getElementById("reachedIcon");
+        const timeValue   = document.getElementById("timeValue");
+        const jsonOutput  = document.getElementById("jsonOutput");
+
+        if (stepsValue)  stepsValue.textContent  = String(result.total_steps);
+        if (reachedValue) reachedValue.textContent = result.target_reached ? "Yes" : "No";
+        if (reachedIcon)  reachedIcon.textContent  = result.target_reached ? "✅" : "❌";
+        if (timeValue)    timeValue.textContent    = `${result.execution_time_ms}ms`;
+
+        for (const id of ["cardSteps","cardReached","cardTime"]) {
+          const el = document.getElementById(id);
+          if (!el) continue;
+          el.classList.remove("rm-fade-up");
+          void el.offsetWidth;
+          el.classList.add("rm-fade-up");
+        }
+
+        // Format JSON so each coordinate pair is on one line: [r, c]
+        // path array has each coord horizontal, grid rows horizontal too
+        lastOutputRaw = formatRouteMasterJson(result);
+        if (jsonOutput) jsonOutput.innerHTML = highlightJsonString(lastOutputRaw);
+
+        // ── Build step-by-step log ────────────────────────────────────────
+        buildStepLog(result);
+      }
+
+      function buildStepLog(result) {
+        const section  = document.getElementById("stepLogSection");
+        const list     = document.getElementById("stepLogList");
+        if (!section || !list) return;
+
+        list.innerHTML = "";
+        const steps = [];
+
+        // ── Phase labels ──────────────────────────────────────────────────
+        const phaseSteps = [
+          { dot: "#6366f1", label: "🚀 Initialisation", desc: "BFS queue created. Start node enqueued. Visited array initialised to all false." },
+          { dot: "#22c55e", label: "📍 Start node marked visited", desc: `Position [${result.path && result.path[0] ? result.path[0].join(", ") : "—"}] added to queue with parent = null.` },
+        ];
+
+        // Per-path-step entries
+        if (result.target_reached && Array.isArray(result.path) && result.path.length > 0) {
+          for (let i = 0; i < result.path.length; i++) {
+            const pos  = result.path[i];
+            const isStart  = i === 0;
+            const isTarget = i === result.path.length - 1;
+
+            let dot  = "#facc15"; // yellow = path
+            let icon = "➡️";
+            if (isStart)  { dot = "#22c55e"; icon = "🟢"; }
+            if (isTarget) { dot = "#ef4444"; icon = "🎯"; }
+
+            const label = isStart
+              ? `Step 0 — Start at [${pos.join(", ")}]`
+              : isTarget
+                ? `Step ${i} — 🎯 Target reached at [${pos.join(", ")}]`
+                : `Step ${i} — Move to [${pos.join(", ")}]`;
+
+            let desc = "";
+            if (isStart) {
+              desc = "BFS begins here. Cell enqueued, marked visited. Neighbours will be explored next.";
+            } else if (isTarget) {
+              desc = `Target found! Dequeued [${pos.join(", ")}]. Path reconstructed by walking parent pointers back to start.`;
+            } else {
+              const prev = result.path[i - 1];
+              const dr   = pos[0] - prev[0];
+              const dc   = pos[1] - prev[1];
+              const dir  = dr === -1 ? "UP" : dr === 1 ? "DOWN" : dc === -1 ? "LEFT" : "RIGHT";
+              desc = `Dequeued [${prev.join(", ")}]. Neighbour [${pos.join(", ")}] is open & unvisited → enqueued, marked visited. Direction: ${dir}.`;
+            }
+
+            phaseSteps.push({ dot, icon, label, desc });
+          }
+
+          phaseSteps.push({
+            dot: "#14b8a6",
+            label: "🔁 Path Reconstruction",
+            desc: `Walked parent pointers from target back to start. Reversed array → final path of ${result.path.length} cells (${result.total_steps} steps).`
+          });
+        } else {
+          phaseSteps.push({
+            dot: "#f87171",
+            label: "❌ Queue Exhausted — No Path Found",
+            desc: "BFS explored all reachable cells. Target was never dequeued. Returning target_reached: false."
+          });
+        }
+
+        phaseSteps.push({
+          dot: "#94a3b8",
+          label: "⏱ Timer Stopped",
+          desc: `Execution time recorded: ${result.execution_time_ms}ms. Output object built with 4 required fields.`
+        });
+
+        // Build plain-text version for download
+        const plainLines = ["RouteMaster — BFS Step-by-Step Procedure", "=".repeat(50), ""];
+        phaseSteps.forEach((s, i) => {
+          plainLines.push(`[${i + 1}] ${s.label}`);
+          plainLines.push(`    ${s.desc}`);
+          plainLines.push("");
+        });
+        plainLines.push("=".repeat(50));
+        plainLines.push(`Result: total_steps=${result.total_steps} | target_reached=${result.target_reached} | time=${result.execution_time_ms}ms`);
+        if (result.path && result.path.length) {
+          plainLines.push(`Path: ${result.path.map(p => "[" + p.join(",") + "]").join(" → ")}`);
+        }
+        lastStepsRaw = plainLines.join("\n");
+
+        // Render into DOM with staggered animation
+        phaseSteps.forEach((s, i) => {
+          const item = document.createElement("div");
+          item.className = "rm-step-item flex gap-3 rounded-xl border border-slate-700/40 bg-[#0b1220] px-3 py-2.5";
+          item.innerHTML = `
+            <span class="rm-step-dot mt-1" style="background:${s.dot};box-shadow:0 0 6px ${s.dot}55;"></span>
+            <div class="flex-1 min-w-0">
+              <div class="text-xs font-semibold text-slate-100">${s.label}</div>
+              <div class="mt-0.5 text-xs text-slate-400 leading-5">${s.desc}</div>
+            </div>
+            <div class="text-xs text-slate-600 font-mono self-start pt-0.5">#${i + 1}</div>
+          `;
+          list.appendChild(item);
+          setTimeout(() => item.classList.add("rm-step-in"), i * 60);
+        });
+
+        section.style.display = "";
+        setTimeout(() => section.scrollIntoView({ behavior: "smooth", block: "start" }), phaseSteps.length * 60 + 100);
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        const textarea = document.getElementById("jsonInput");
+        const loadExampleBtn = document.getElementById("loadExampleBtn");
+        const clearBtn = document.getElementById("clearBtn");
+        const calculateRouteBtn = document.getElementById("calculateRouteBtn");
+        const counter = document.getElementById("inputCounter");
+        const copyBtn = document.getElementById("copyOutputBtn");
+        const copyStatus = document.getElementById("copyStatus");
+        const zoomInBtn = document.getElementById("zoomInBtn");
+        const zoomOutBtn = document.getElementById("zoomOutBtn");
+        const zoomLabel = document.getElementById("zoomLabel");
+        const jsonFileInput = document.getElementById("jsonFileInput");
+        const uploadStatus = document.getElementById("uploadStatus");
+
+        // Download JSON output
+        const downloadJsonBtn = document.getElementById("downloadJsonBtn");
+        if (downloadJsonBtn) {
+          downloadJsonBtn.addEventListener("click", () => {
+            if (!lastOutputRaw) { showToast("No output to download yet.", "warning"); return; }
+            const blob = new Blob([lastOutputRaw], { type: "application/json" });
+            const url  = URL.createObjectURL(blob);
+            const a    = Object.assign(document.createElement("a"), { href: url, download: "routemaster_output.json" });
+            document.body.appendChild(a); a.click();
+            document.body.removeChild(a); URL.revokeObjectURL(url);
+            showToast("output.json downloaded!", "success");
+          });
+        }
+
+        // Download step-by-step log
+        const downloadStepsBtn = document.getElementById("downloadStepsBtn");
+        if (downloadStepsBtn) {
+          downloadStepsBtn.addEventListener("click", () => {
+            if (!lastStepsRaw) { showToast("No steps to download yet.", "warning"); return; }
+            const blob = new Blob([lastStepsRaw], { type: "text/plain" });
+            const url  = URL.createObjectURL(blob);
+            const a    = Object.assign(document.createElement("a"), { href: url, download: "bfs_steps.txt" });
+            document.body.appendChild(a); a.click();
+            document.body.removeChild(a); URL.revokeObjectURL(url);
+            showToast("bfs_steps.txt downloaded!", "success");
+          });
+        }
+
+        const exampleJson = '{"grid":[[0,0,1],[1,0,1],[0,2,0]],"start":[0,0],"targets":[[2,1]]}';
+
+        const updateCounter = () => {
+          if (!textarea||!counter) return;
+          const chars = textarea.value.length;
+          const lines = textarea.value.length===0 ? 1 : textarea.value.split(/\r\n|\r|\n/).length;
+          counter.textContent = `Chars: ${chars} | Lines: ${lines}`;
+        };
+        updateCounter();
+        if (textarea) textarea.addEventListener("input", updateCounter);
+
+        // ── Universal File Upload: handles ANY CSV or JSON format ──────────
+        if (jsonFileInput && textarea) {
+          jsonFileInput.addEventListener("change", (e) => {
+            const file = e.target.files && e.target.files[0];
+            if (!file) return;
+
+            const name = file.name.toLowerCase();
+            const isJson = name.endsWith(".json") || file.type === "application/json";
+            const isCsv  = name.endsWith(".csv")  || file.type === "text/csv";
+
+            if (!isJson && !isCsv) {
+              showError("Unsupported file type. Please upload a .json or .csv file.");
+              jsonFileInput.value = "";
+              return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (evt) => {
+              try {
+                const raw = evt.target.result.trim();
+                let jsonText = "";
+
+                // ════════════════════════════════════════════════════════
+                // JSON HANDLING — smart normaliser
+                // Accepts ANY valid JSON that contains grid data in any shape:
+                //   • { grid, start, targets }           ← standard format
+                //   • { grid, start, target }            ← singular target key
+                //   • { grid, start_row, start_col, ... }← flat coord keys
+                //   • { data: { grid, start, targets } } ← nested wrapper
+                //   • [ [0,0,1], [1,0,2] ]               ← bare 2D array
+                //   • { rows: [...], start:[], target:[] }← alternate key names
+                // ════════════════════════════════════════════════════════
+                if (isJson) {
+                  let parsed;
+                  try { parsed = JSON.parse(raw); }
+                  catch { throw new Error("File contains invalid JSON. Please check the file."); }
+
+                  jsonText = normaliseToRoutemasterJson(parsed);
+
+                // ════════════════════════════════════════════════════════
+                // CSV HANDLING — universal multi-format parser
+                // Tries each strategy in order, uses first that works:
+                //
+                //  Strategy 1 — Standard format: columns named
+                //    "grid", "start", "targets" (JSON-encoded values in cells)
+                //
+                //  Strategy 2 — Named coord columns:
+                //    start_row, start_col, target_row, target_col + grid block
+                //    with header "grid_row,col_0,col_1,..."
+                //
+                //  Strategy 3 — Key-value pairs:
+                //    rows like:  key,value
+                //    e.g.  start,"[0,0]"   targets,"[[2,1]]"
+                //
+                //  Strategy 4 — Inline grid with start/target as special values:
+                //    header row: start_row,start_col,target_row,target_col
+                //    data row:   0,0,4,3
+                //    then blank, then pure numeric grid rows
+                //
+                //  Strategy 5 — Pure numeric grid (plain grid CSV):
+                //    Every row is pure numbers: 0,1,0,2,...
+                //    start = [0,0], target = cell with value 2
+                //
+                //  Strategy 6 — Grid with S/T/X markers instead of numbers:
+                //    S = start, T or 2 = target, X or 1 = obstacle, 0 = open
+                // ════════════════════════════════════════════════════════
+                } else {
+                  jsonText = parseCsvUniversal(raw, file.name);
+                }
+
+                clearError();
+                textarea.value = jsonText;
+                updateCounter();
+
+                textarea.classList.remove("rm-upload-flash");
+                void textarea.offsetWidth;
+                textarea.classList.add("rm-upload-flash");
+
+                const label = isCsv ? "CSV converted → running BFS..." : "JSON normalised → running BFS...";
+                if (uploadStatus) {
+                  uploadStatus.textContent = `✓ "${file.name}" — ${label}`;
+                  setTimeout(() => { if (uploadStatus) uploadStatus.textContent = ""; }, 4000);
+                }
+                showToast(isCsv ? "CSV detected — converted & running BFS!" : "JSON loaded — running BFS!", "success");
+                setTimeout(() => runBFS(jsonText), 400);
+
+              } catch (err) {
+                const msg = err && err.message ? err.message : "Could not parse file.";
+                showError(`Upload error: ${msg}`);
+              }
+              jsonFileInput.value = "";
+            };
+            reader.onerror = () => {
+              showError("Failed to read the file. Please try again.");
+              jsonFileInput.value = "";
+            };
+            reader.readAsText(file);
+          });
+        }
+
+        // ── JSON normaliser: accepts any JSON shape → { grid, start, targets }
+        function normaliseToRoutemasterJson(parsed) {
+          let grid = null, start = null, targets = null;
+
+          // Bare 2D array
+          if (Array.isArray(parsed)) {
+            grid = parsed;
+          } else if (parsed && typeof parsed === "object") {
+            // Unwrap common wrapper keys
+            const src = parsed.data || parsed.input || parsed.payload || parsed;
+
+            // grid key variants
+            grid = src.grid || src.map || src.matrix || src.board || src.cells || null;
+
+            // start key variants
+            const rawStart = src.start || src.startPos || src.start_pos || src.origin || src.from || null;
+            if (rawStart) {
+              start = normaliseCoord(rawStart);
+            } else if ("start_row" in src && "start_col" in src) {
+              start = [parseInt(src.start_row,10), parseInt(src.start_col,10)];
+            } else if ("startRow" in src && "startCol" in src) {
+              start = [parseInt(src.startRow,10), parseInt(src.startCol,10)];
+            }
+
+            // targets key variants (singular or plural)
+            const rawTarget = src.targets || src.target || src.goals || src.goal || src.end || src.to || src.destination || null;
+            if (rawTarget) {
+              if (Array.isArray(rawTarget) && rawTarget.length > 0) {
+                // Could be [[r,c]] or [r,c]
+                targets = Array.isArray(rawTarget[0]) ? rawTarget : [rawTarget];
+              } else if (rawTarget && typeof rawTarget === "object") {
+                targets = [normaliseCoord(rawTarget)];
+              }
+            } else if ("target_row" in src && "target_col" in src) {
+              targets = [[parseInt(src.target_row,10), parseInt(src.target_col,10)]];
+            } else if ("targetRow" in src && "targetCol" in src) {
+              targets = [[parseInt(src.targetRow,10), parseInt(src.targetCol,10)]];
+            } else if ("end_row" in src && "end_col" in src) {
+              targets = [[parseInt(src.end_row,10), parseInt(src.end_col,10)]];
+            }
+          }
+
+          // If grid found but no start/target, infer from cell values
+          if (grid && (!start || !targets)) {
+            const inferred = inferStartTarget(grid);
+            if (!start) start = inferred.start;
+            if (!targets) targets = inferred.targets;
+          }
+
+          if (!grid) throw new Error("Could not find grid data in JSON. Expected a key named 'grid', 'map', 'matrix', or a bare 2D array.");
+          if (!start) throw new Error("Could not find start position. Expected 'start', 'startPos', 'start_row'/'start_col', or a cell with value 0 at [0,0].");
+          if (!targets || targets.length === 0) throw new Error("Could not find target. Expected 'targets', 'target', 'goal', or a cell with value 2 in the grid.");
+
+          return JSON.stringify({ grid, start, targets }, null, 2);
+        }
+
+        // Normalise a coord that might be {row,col}, {r,c}, {x,y}, or [r,c]
+        function normaliseCoord(v) {
+          if (Array.isArray(v)) return [parseInt(v[0],10), parseInt(v[1],10)];
+          if (typeof v === "object") {
+            const r = v.row ?? v.r ?? v.y ?? v[0] ?? null;
+            const c = v.col ?? v.column ?? v.c ?? v.x ?? v[1] ?? null;
+            if (r !== null && c !== null) return [parseInt(r,10), parseInt(c,10)];
+          }
+          return null;
+        }
+
+        // Infer start ([0,0] or first 0-cell) and target (first 2-cell) from grid values
+        function inferStartTarget(grid) {
+          let start = [0, 0];
+          let targetR = -1, targetC = -1;
+          for (let r = 0; r < grid.length; r++) {
+            for (let c = 0; c < grid[r].length; c++) {
+              const v = grid[r][c];
+              if (v === 2 && targetR === -1) { targetR = r; targetC = c; }
+            }
+          }
+          return {
+            start,
+            targets: targetR !== -1 ? [[targetR, targetC]] : null
+          };
+        }
+
+        // ── Universal CSV parser: tries 6 strategies in order ──────────────
+        function parseCsvUniversal(raw, filename) {
+          const allLines = raw.split(/\r\n|\r|\n/);
+          const lines = allLines.map(l => l.trim()).filter(l => l.length > 0);
+          if (lines.length === 0) throw new Error("CSV file is empty.");
+
+          // Helper: split a CSV line respecting quoted fields
+          function splitCsv(line) {
+            const result = [];
+            let cur = "", inQuote = false;
+            for (let i = 0; i < line.length; i++) {
+              const ch = line[i];
+              if (ch === '"') { inQuote = !inQuote; continue; }
+              if (ch === "," && !inQuote) { result.push(cur.trim()); cur = ""; continue; }
+              cur += ch;
+            }
+            result.push(cur.trim());
+            return result;
+          }
+
+          // Helper: is a value a plain integer string?
+          const isInt = v => /^-?\d+$/.test(v.trim());
+          // Helper: try to parse JSON-encoded value
+          const tryJson = v => { try { return JSON.parse(v); } catch { return null; } };
+
+          const headers = splitCsv(lines[0]).map(h => h.toLowerCase().replace(/['"]/g, ""));
+
+          // ── Strategy 1: header row has "grid", "start", "targets" columns
+          if (headers.includes("grid") || (headers.includes("start") && headers.includes("targets"))) {
+            const gridIdx    = headers.indexOf("grid");
+            const startIdx   = headers.indexOf("start");
+            const targetsIdx = headers.indexOf("targets") !== -1 ? headers.indexOf("targets") : headers.indexOf("target");
+
+            if (lines.length > 1) {
+              const vals = splitCsv(lines[1]);
+              const grid    = gridIdx !== -1    ? tryJson(vals[gridIdx])    : null;
+              const start   = startIdx !== -1   ? tryJson(vals[startIdx])   : null;
+              const targets = targetsIdx !== -1 ? tryJson(vals[targetsIdx]) : null;
+
+              if (grid && start && targets) {
+                return JSON.stringify({ grid, start, targets: Array.isArray(targets[0]) ? targets : [targets] }, null, 2);
+              }
+            }
+          }
+
+          // ── Strategy 2: named coord headers + grid_row block
+          const hasCoordHeaders = headers.includes("start_row") || headers.includes("startrow") || headers.includes("start row");
+          const gridBlockIdx = lines.findIndex(l => /^grid[_\s]?row[,\s]/i.test(l));
+
+          if (hasCoordHeaders && gridBlockIdx !== -1) {
+            const normH = headers.map(h => h.replace(/[_\s]/g,""));
+            const vals  = lines[1] ? splitCsv(lines[1]) : [];
+            const g = n => { const i = normH.indexOf(n); return i !== -1 ? parseInt(vals[i],10) : NaN; };
+            const sr = g("startrow"), sc = g("startcol"), tr = g("targetrow"), tc = g("targetcol");
+
+            const gridLines = [];
+            for (let i = gridBlockIdx + 1; i < lines.length; i++) {
+              const parts = splitCsv(lines[i]);
+              if (!/^row[_\s]?\d+$/i.test(parts[0])) break;
+              const cells = parts.slice(1).map(v => parseInt(v,10)).filter(v => !isNaN(v));
+              if (cells.length) gridLines.push(cells);
+            }
+
+            if (gridLines.length > 0 && !isNaN(sr) && !isNaN(sc) && !isNaN(tr) && !isNaN(tc)) {
+              return JSON.stringify({ grid: gridLines, start: [sr,sc], targets: [[tr,tc]] }, null, 2);
+            }
+          }
+
+          // ── Strategy 3: key-value pair rows  (key , value)
+          //    e.g.   start,"[0,0]"    targets,"[[2,1]]"    grid,"[[0,1,0]...]"
+          const kvMap = {};
+          for (const line of lines) {
+            const parts = splitCsv(line);
+            if (parts.length === 2) {
+              const k = parts[0].toLowerCase().replace(/[_\s]/g,"");
+              const v = parts[1];
+              kvMap[k] = v;
+            }
+          }
+          {
+            const gRaw = kvMap["grid"] || kvMap["map"] || kvMap["matrix"] || null;
+            const sRaw = kvMap["start"] || kvMap["startpos"] || kvMap["origin"] || null;
+            const tRaw = kvMap["targets"] || kvMap["target"] || kvMap["goal"] || kvMap["end"] || null;
+            if (gRaw && sRaw && tRaw) {
+              const grid    = tryJson(gRaw);
+              const start   = tryJson(sRaw);
+              const targets = tryJson(tRaw);
+              if (grid && start && targets) {
+                return JSON.stringify({ grid, start, targets: Array.isArray(targets[0]) ? targets : [targets] }, null, 2);
+              }
+            }
+          }
+
+          // ── Strategy 4: coord header row + numeric grid rows below
+          //    Line 1: start_row,start_col,target_row,target_col
+          //    Line 2: 0,0,4,3
+          //    Lines 3+: pure numeric grid
+          {
+            const normH = headers.map(h => h.replace(/[_\s]/g,""));
+            const hasAll = ["startrow","startcol","targetrow","targetcol"].every(k => normH.includes(k));
+            if (hasAll && lines.length > 2) {
+              const vals = splitCsv(lines[1]);
+              const g = n => { const i = normH.indexOf(n); return i !== -1 ? parseInt(vals[i],10) : NaN; };
+              const sr = g("startrow"), sc = g("startcol"), tr = g("targetrow"), tc = g("targetcol");
+
+              const grid = [];
+              for (let i = 2; i < lines.length; i++) {
+                const cells = splitCsv(lines[i]).map(v => parseInt(v,10));
+                if (cells.every(v => !isNaN(v))) grid.push(cells);
+              }
+
+              if (grid.length > 0 && !isNaN(sr) && !isNaN(sc) && !isNaN(tr) && !isNaN(tc)) {
+                return JSON.stringify({ grid, start: [sr,sc], targets: [[tr,tc]] }, null, 2);
+              }
+            }
+          }
+
+          // ── Strategy 5: pure numeric grid — every non-header row is all integers
+          {
+            const grid = [];
+            let tgtR = -1, tgtC = -1;
+            for (const line of lines) {
+              const cells = splitCsv(line).map(v => parseInt(v.trim(),10));
+              if (cells.every(v => !isNaN(v))) {
+                const t2 = cells.indexOf(2);
+                if (t2 !== -1) { tgtR = grid.length; tgtC = t2; }
+                grid.push(cells);
+              }
+            }
+            if (grid.length > 0 && tgtR !== -1) {
+              return JSON.stringify({ grid, start: [0,0], targets: [[tgtR,tgtC]] }, null, 2);
+            }
+            if (grid.length > 0) {
+              // No 2-cell found — mark last cell as target
+              const lastR = grid.length - 1, lastC = grid[lastR].length - 1;
+              grid[lastR][lastC] = 2;
+              return JSON.stringify({ grid, start: [0,0], targets: [[lastR,lastC]] }, null, 2);
+            }
+          }
+
+          // ── Strategy 6: grid with S/T/X/O letter markers
+          {
+            const grid = [];
+            let sr = -1, sc = -1, tr = -1, tc = -1;
+            for (const line of lines) {
+              const cells = splitCsv(line).map(v => v.trim().toUpperCase());
+              // Must be a grid row — all cells are S,T,X,O,0,1,2
+              if (!cells.every(v => ["S","T","X","O","0","1","2","E","G"].includes(v))) continue;
+              const numRow = cells.map((v,c) => {
+                if (v === "S") { sr = grid.length; sc = c; return 0; }
+                if (v === "T" || v === "E" || v === "G") { tr = grid.length; tc = c; return 2; }
+                if (v === "X") return 1;
+                return parseInt(v,10) || 0;
+              });
+              grid.push(numRow);
+            }
+            if (grid.length > 0 && sr !== -1 && tr !== -1) {
+              return JSON.stringify({ grid, start: [sr,sc], targets: [[tr,tc]] }, null, 2);
+            }
+          }
+
+          throw new Error(
+            "Could not parse CSV. Supported formats:\n" +
+            "• Plain grid: rows of 0/1/2 values (2 = target)\n" +
+            "• Named headers: start_row, start_col, target_row, target_col\n" +
+            "• Key-value pairs: start,\"[0,0]\" / targets,\"[[r,c]]\"\n" +
+            "• Letter grid: S=start, T=target, X=obstacle, O=open"
+          );
+        }
+
+        if (loadExampleBtn && textarea) {
+          loadExampleBtn.addEventListener("click", () => {
+            clearError();
+            textarea.value = exampleJson;
+            updateCounter();
+          });
+        }
+
+        if (clearBtn && textarea) {
+          clearBtn.addEventListener("click", () => {
+            clearError();
+            textarea.value = "";
+            updateCounter();
+            lastOutputRaw = "";
+            lastRenderState = null;
+            if (uploadStatus) uploadStatus.textContent = "";
+            const jsonOutput = document.getElementById("jsonOutput");
+            if (jsonOutput) jsonOutput.textContent = '{\n  "result": null\n}';
+            const stepsValue = document.getElementById("stepsValue");
+            const reachedValue = document.getElementById("reachedValue");
+            const reachedIcon = document.getElementById("reachedIcon");
+            const timeValue = document.getElementById("timeValue");
+            if (stepsValue) stepsValue.textContent = "—";
+            if (reachedValue) reachedValue.textContent = "—";
+            if (reachedIcon) reachedIcon.textContent = "—";
+            if (timeValue) timeValue.textContent = "—";
+            const gridArea = document.getElementById("gridArea");
+            if (gridArea) gridArea.innerHTML = "";
+            lastStepsRaw = "";
+            const stepLogSection = document.getElementById("stepLogSection");
+            const stepLogList    = document.getElementById("stepLogList");
+            if (stepLogSection) stepLogSection.style.display = "none";
+            if (stepLogList)    stepLogList.innerHTML = "";
+          });
+        }
+
+        if (copyBtn) {
+          copyBtn.addEventListener("click", async () => {
+            try {
+              const textToCopy = lastOutputRaw || "";
+              if (!textToCopy) return;
+              if (navigator.clipboard && navigator.clipboard.writeText) {
+                await navigator.clipboard.writeText(textToCopy);
+              } else {
+                const tmp = document.createElement("textarea");
+                tmp.value = textToCopy;
+                tmp.style.position = "fixed";
+                tmp.style.left = "-9999px";
+                document.body.appendChild(tmp);
+                tmp.select();
+                document.execCommand("copy");
+                document.body.removeChild(tmp);
+              }
+              if (copyStatus) {
+                copyStatus.classList.remove("hidden");
+                setTimeout(()=>copyStatus.classList.add("hidden"), 2000);
+              }
+            } catch { showToast("Copy failed.", "error"); }
+          });
+        }
+
+        const clamp = (v,min,max) => Math.max(min,Math.min(max,v));
+        const applyZoomLabel = () => { if (zoomLabel) zoomLabel.textContent = `${gridCellSize}px`; };
+        applyZoomLabel();
+
+        if (zoomInBtn) {
+          zoomInBtn.addEventListener("click", () => {
+            gridCellSize = clamp(gridCellSize+4, 20, 80);
+            applyZoomLabel();
+            if (lastRenderState) renderGrid(lastRenderState.grid, lastRenderState.start, lastRenderState.target, lastRenderState.path);
+          });
+        }
+        if (zoomOutBtn) {
+          zoomOutBtn.addEventListener("click", () => {
+            gridCellSize = clamp(gridCellSize-4, 20, 80);
+            applyZoomLabel();
+            if (lastRenderState) renderGrid(lastRenderState.grid, lastRenderState.start, lastRenderState.target, lastRenderState.path);
+          });
+        }
+
+        // ── Shared BFS runner — used by Calculate button AND CSV auto-process
+        function runBFS(jsonText) {
+          try {
+            clearError();
+            let parsed;
+            try { parsed = JSON.parse(jsonText); }
+            catch { throw new Error("Invalid JSON. Please fix the JSON and try again."); }
+
+            if (parsed===null||typeof parsed!=="object"||Array.isArray(parsed))
+              throw new Error("Input must be a JSON object with keys: grid, start, targets.");
+            if (!("grid" in parsed)||!("start" in parsed)||!("targets" in parsed))
+              throw new Error("Missing required keys. Expected: grid, start, targets.");
+
+            const { rows, cols } = ensureGrid(parsed.grid);
+            if (!Array.isArray(parsed.targets)||parsed.targets.length<1)
+              throw new Error("targets must be an array with at least 1 element.");
+
+            ensurePosition(parsed.start, rows, cols, "start");
+            ensurePosition(parsed.targets[0], rows, cols, "targets[0]");
+
+            renderGrid(parsed.grid, parsed.start, parsed.targets[0], []);
+            setLoading(true);
+
+            setTimeout(() => {
+              try {
+                if (parsed.start[0]===parsed.targets[0][0] && parsed.start[1]===parsed.targets[0][1]) {
+                  const result = { total_steps:0, path:[parsed.start], target_reached:true, execution_time_ms:0 };
+                  setOutput(result);
+                  renderGrid(parsed.grid, parsed.start, parsed.targets[0], result.path);
+                  document.getElementById("gridArea")?.scrollIntoView({ behavior:"smooth", block:"start" });
+                  showToast(`Path found in ${result.total_steps} steps!`, "success");
+                  return;
+                }
+                const result = bfs(parsed.grid, parsed.start, parsed.targets[0]);
+                setOutput(result);
+                renderGrid(parsed.grid, parsed.start, parsed.targets[0], result.path);
+                document.getElementById("gridArea")?.scrollIntoView({ behavior:"smooth", block:"start" });
+                showToast(
+                  result.target_reached ? `Path found in ${result.total_steps} steps!` : "No path exists!",
+                  result.target_reached ? "success" : "warning"
+                );
+              } finally { setLoading(false); }
+            }, 300);
+
+          } catch (err) {
+            setLoading(false);
+            const message = err&&typeof err.message==="string" ? err.message : "An unexpected error occurred.";
+            showError(message);
+            if (textarea) {
+              textarea.classList.remove("rm-shake");
+              void textarea.offsetWidth;
+              textarea.classList.add("rm-shake");
+            }
+          }
+        }
+
+        if (calculateRouteBtn && textarea) {
+          calculateRouteBtn.addEventListener("click", () => runBFS(textarea.value));
+        }
+
+        // Scroll reveal
+        const revealEls = Array.from(document.querySelectorAll("[data-reveal]"));
+        for (const el of revealEls) el.classList.add("rm-reveal");
+        if ("IntersectionObserver" in window) {
+          const io = new IntersectionObserver((entries) => {
+            for (const entry of entries) {
+              if (entry.isIntersecting) { entry.target.classList.add("rm-reveal-in"); io.unobserve(entry.target); }
+            }
+          }, { threshold: 0.15 });
+          for (const el of revealEls) io.observe(el);
+        } else {
+          for (const el of revealEls) el.classList.add("rm-reveal-in");
+        }
+
+        // Back to top
+        const backToTopBtn = document.getElementById("backToTopBtn");
+        const onScroll = () => {
+          if (!backToTopBtn) return;
+          if (window.scrollY>300) backToTopBtn.classList.remove("hidden");
+          else backToTopBtn.classList.add("hidden");
+        };
+        window.addEventListener("scroll", onScroll, { passive: true });
+        onScroll();
+        if (backToTopBtn) backToTopBtn.addEventListener("click", () => window.scrollTo({ top:0, behavior:"smooth" }));
+      });
+    </script>
+  </body>
+</html>
